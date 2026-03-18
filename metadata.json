@@ -1,0 +1,5 @@
+{
+  "name": "Extrator de XML para Ordem de Compra",
+  "description": "Aplicação para extrair dados de arquivos XML (NF-e) e gerar ordens de compra padronizadas.",
+  "requestFramePermissions": []
+}
