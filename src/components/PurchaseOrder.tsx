@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PurchaseOrderData } from '../types';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { ChevronDown, Check } from 'lucide-react';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -30,39 +32,61 @@ export const PurchaseOrder: React.FC<PurchaseOrderProps> = ({ data, onUpdate }) 
     onUpdate({ ...data, items: newItems, totalAmount: newTotal });
   };
 
+  const typeLabels = {
+    'PACTUE': 'MANUTENÇÃO (PACTUE)',
+    'PNAE': 'MERENDA ESCOLAR (PNAE)',
+    'PDDE': 'PDDE'
+  };
+
   return (
     <div id="purchase-order-print" className="bg-white p-8 shadow-lg max-w-[210mm] mx-auto text-sm font-sans text-gray-800 border border-gray-200 print:shadow-none print:border-none print:p-0">
-      {/* Header Checkboxes */}
-      <div className="flex justify-end mb-2">
+      {/* Header Checkboxes - Visible only in Print */}
+      <div className="hidden print:flex justify-end mb-2">
         <div className="flex flex-col items-start space-y-1">
-          <div className="flex items-center gap-2">
-            <input 
-              type="checkbox" 
-              checked={data.type === 'PACTUE'} 
-              onChange={() => handleChange('type', 'PACTUE')}
-              className="w-4 h-4"
-            />
-            <label className="font-bold text-[12px]">MANUTENÇÃO (PACTUE)</label>
-          </div>
-          <div className="flex items-center gap-2">
-            <input 
-              type="checkbox" 
-              checked={data.type === 'PNAE'} 
-              onChange={() => handleChange('type', 'PNAE')}
-              className="w-4 h-4"
-            />
-            <label className="font-bold text-[12px]">MERENDA ESCOLAR (PNAE)</label>
-          </div>
-          <div className="flex items-center gap-2">
-            <input 
-              type="checkbox" 
-              checked={data.type === 'PDDE'} 
-              onChange={() => handleChange('type', 'PDDE')}
-              className="w-4 h-4"
-            />
-            <label className="font-bold text-[12px]">PDDE</label>
-          </div>
+          {Object.entries(typeLabels).map(([key, label]) => (
+            <div key={key} className="flex items-center gap-2">
+              <div className="w-4 h-4 border border-gray-800 flex items-center justify-center font-bold text-[10px]">
+                {data.type === key ? 'X' : ''}
+              </div>
+              <label className="font-bold text-[12px]">{label}</label>
+            </div>
+          ))}
         </div>
+      </div>
+
+      {/* Floating Menu for Selection - Visible only on Screen */}
+      <div className="print:hidden flex justify-end mb-4">
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <button className="flex items-center gap-2 bg-stone-100 hover:bg-stone-200 px-4 py-2 rounded-md border border-stone-300 transition-colors font-bold text-stone-700 shadow-sm outline-none">
+              <span>Tipo: {typeLabels[data.type as keyof typeof typeLabels]}</span>
+              <ChevronDown size={16} />
+            </button>
+          </DropdownMenu.Trigger>
+
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content 
+              className="min-w-[220px] bg-white rounded-md p-1 shadow-xl border border-stone-200 z-50 animate-in fade-in zoom-in duration-200"
+              sideOffset={5}
+              align="end"
+            >
+              {Object.entries(typeLabels).map(([key, label]) => (
+                <DropdownMenu.Item
+                  key={key}
+                  className="group text-[13px] leading-none text-stone-700 rounded-[3px] flex items-center h-[35px] px-[10px] relative pl-[35px] select-none outline-none data-[disabled]:text-stone-300 data-[disabled]:pointer-events-none data-[highlighted]:bg-stone-100 data-[highlighted]:text-stone-900 cursor-pointer"
+                  onClick={() => handleChange('type', key)}
+                >
+                  {data.type === key && (
+                    <span className="absolute left-0 w-[35px] inline-flex items-center justify-center">
+                      <Check size={16} className="text-stone-900" />
+                    </span>
+                  )}
+                  {label}
+                </DropdownMenu.Item>
+              ))}
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
       </div>
 
       {/* Main Title */}
